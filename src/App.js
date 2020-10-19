@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { of, interval, concat, Subject } from 'rxjs';
-import { takeWhile, takeUntil, scan, startWith, repeatWhen, share, filter } from 'rxjs/operators';
-// import './styles.css';
+import { takeWhile, takeUntil, scan, startWith, repeatWhen, share, filter, tap } from 'rxjs/operators';
+import './styles.css';
 
 const countdown$ = interval(200).
     pipe(
@@ -11,10 +11,12 @@ const countdown$ = interval(200).
     ).pipe(share());
 
 const action$ = new Subject();
-const snooze$ = action$.pipe(filter(action => action === 'snooze'));
+const snooze$ = action$.pipe(filter(action => action === 'snooze')).pipe(tap(ev => console.log(ev)));
 const dismiss$ = action$.pipe(filter(action => action === 'dismiss'));
 
-const snoozeableAlarm$ = concat(countdown$, of('Wake up! 🎉')).pipe(repeatWhen(() => snooze$));
+const snoozeableAlarm$ = concat(countdown$, of('Wake up! 🎉')).pipe(
+    repeatWhen(() => snooze$)
+);
 
 const observable$ = concat(snoozeableAlarm$.pipe(
     takeUntil(dismiss$)
